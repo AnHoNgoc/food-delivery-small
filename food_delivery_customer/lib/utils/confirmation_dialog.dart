@@ -42,9 +42,6 @@ Future<bool?> showConfirmationDialog(
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDarkMode ? Colors.green.shade600 : Colors.green,
-            ),
             child: Text(
               confirmText,
               style: const TextStyle(color: Colors.white),

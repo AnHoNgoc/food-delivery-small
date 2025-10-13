@@ -6,7 +6,9 @@ import 'package:uuid/uuid.dart';
 import '../components/my_button.dart';
 import '../components/my_text_field.dart';
 import '../models/food.dart';
+import '../routes/app_routes.dart';
 import '../services/food_service.dart';
+import '../utils/show_snackbar.dart';
 
 
 class AddFoodPage extends StatefulWidget {
@@ -56,24 +58,44 @@ class _AddFoodPageState extends State<AddFoodPage> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_pickedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
-    final food = Food(
-      id: const Uuid().v4(),
-      name: _nameController.text.trim(),
-      description: _descController.text.trim(),
-      imagePath: _pickedImage != null ? _pickedImage!.path : "",
-      price: double.parse(_priceController.text.trim()),
-      category: _selectedCategory,
-      availableAddons: _addons,
-    );
-
     try {
-      await foodService.addFood(food);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Food added successfully!')),
+      // 1. Upload ảnh
+      final downloadURL = await foodService.uploadFoodImage(_pickedImage!);
+
+      // 2. Tạo Food với imagePath là downloadURL
+      final food = Food(
+        id: const Uuid().v4(),
+        name: _nameController.text.trim(),
+        description: _descController.text.trim(),
+        imagePath: downloadURL, // URL thay vì local path
+        price: double.parse(_priceController.text.trim()),
+        category: _selectedCategory,
+        availableAddons: _addons,
       );
+
+      // 3. Lưu vào Firestore
+      await foodService.addFood(food);
+      showAppSnackBar(
+        context,
+        "Food added successfully!",
+        Colors.green,
+      );
+
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+            (route) => false,
+      );
+      // Reset form
       _formKey.currentState!.reset();
       setState(() {
         _addons.clear();
@@ -81,8 +103,10 @@ class _AddFoodPageState extends State<AddFoodPage> {
         _selectedCategory = FoodCategory.burgers;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+      showAppSnackBar(
+        context,
+        "Error: $e",
+        Colors.redAccent,
       );
     } finally {
       setState(() => _isLoading = false);
@@ -109,29 +133,33 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 // Khung chọn ảnh
                 GestureDetector(
                   onTap: _pickImage,
-                  child: Container(
-                    height: 200.h,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.secondary),
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: _pickedImage != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.file(_pickedImage!, fit: BoxFit.cover),
-                    )
-                        : Center(
-                      child: Text(
-                        'Tap to select image',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                          fontSize: 14.sp,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.r),
+                    child: Container(
+                      height: 200.h,
+                      width: double.infinity ,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).colorScheme.secondary),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: _pickedImage != null
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8.r),
+                        child: Image.file(_pickedImage!, fit: BoxFit.cover),
+                      )
+                          : Center(
+                        child: Text(
+                          'Tap to select image',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 14.sp,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
+
                 SizedBox(height: 16.h),
 
                 Form(
@@ -161,7 +189,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
 
                       // Category dropdown
                       SizedBox(
-                        width: 150.w, // hoặc giá trị bạn muốn
+                        width: 320.w, // hoặc giá trị bạn muốn
                         child: DropdownButtonFormField<FoodCategory>(
                           value: _selectedCategory,
                           items: FoodCategory.values
@@ -174,7 +202,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                             if (val != null) setState(() => _selectedCategory = val);
                           },
                           decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8.r),
                               borderSide: BorderSide(color: Theme.of(context).colorScheme.tertiary),
@@ -188,7 +216,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                       SizedBox(height: 16.h),
 
                       Padding(
-                        padding: EdgeInsets.all(10.0),
+                        padding: EdgeInsets.all(12.r),
                         child: Text('Add Addons',
                             style: TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -218,12 +246,13 @@ class _AddFoodPageState extends State<AddFoodPage> {
                           ),
                         ],
                       ),
+
                       SizedBox(height: 10.h),
 
                       Align(
-                        alignment: Alignment.center, // căn trái
+                        alignment: Alignment.center,
                         child: SizedBox(
-                          width: 320.w, // đặt chiều ngang mong muốn, nhỏ hơn full width
+                          width: 320.w,
                           child: ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -237,7 +266,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                                   onPressed: () => setState(() => _addons.removeAt(index)),
                                 ),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 8.w),
-                                dense: true, // giảm chiều cao mỗi item
+                                dense: true,
                               );
                             },
                           ),
@@ -245,7 +274,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
                       ),
                       SizedBox(height: 24.h),
 
-                      // Button Add Food
                       MyButton(
                         text: 'Add Food',
                         onTap: _submit,

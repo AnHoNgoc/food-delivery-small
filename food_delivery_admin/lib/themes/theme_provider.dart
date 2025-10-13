@@ -1,7 +1,4 @@
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'dark_mode.dart';
 import 'light_mode.dart';
 

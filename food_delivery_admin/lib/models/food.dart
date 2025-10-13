@@ -1,5 +1,5 @@
 class Food {
-  final String id; // ✅ thêm id
+  final String id;
   final String name;
   final String description;
   final String imagePath;
@@ -23,7 +23,7 @@ class Food {
     'description': description,
     'imagePath': imagePath,
     'price': price,
-    'category': category.toString(),
+    'category': category.name,
     'availableAddons': availableAddons.map((a) => a.toJson()).toList(),
   };
 

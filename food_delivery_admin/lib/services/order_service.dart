@@ -18,11 +18,11 @@ class OrderService {
         .toList());
   }
 
-  /// Cập nhật status của đơn hàng
+
   Future<bool> updateOrderStatus(String orderId, OrderStatus newStatus) async {
     try {
       await _orderCollection.doc(orderId).update({
-        'status': newStatus.name, // lưu enum dưới dạng string
+        'status': newStatus.name,
       });
       return true;
     } catch (e) {

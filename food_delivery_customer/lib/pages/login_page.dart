@@ -99,7 +99,26 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _passwordController,
                   validator: AppValidator.validatePassword,
                 ),
-                SizedBox(height: 25.h),
+                SizedBox(height: 12.h),
+                Padding(
+                  padding: EdgeInsets.only(right: 24.w),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.resetPassword);
+                      },
+                      child: Text(
+                        "Forgot Password?",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12.h),
                 MyButton(
                   text: "Login",
                   onTap: _login,

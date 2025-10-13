@@ -40,10 +40,9 @@ class AuthService {
   Future<String?> loginUserWithRoleCheck({
     required String email,
     required String password,
-    String requiredRole = "admin", // mặc định yêu cầu admin
+    String requiredRole = "admin",
   }) async {
     try {
-      // Đăng nhập
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -109,7 +108,6 @@ class AuthService {
           return "Password change failed. Please try again.";
       }
     } catch (e) {
-      // debugPrint('changePassword unknown error: $e');
       return "An error occurred. Please try again.";
     }
   }

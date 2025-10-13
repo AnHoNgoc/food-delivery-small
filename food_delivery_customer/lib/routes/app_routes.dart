@@ -7,6 +7,7 @@ import 'package:food_delivery_customer/pages/login_page.dart';
 import 'package:food_delivery_customer/pages/order_page.dart';
 import 'package:food_delivery_customer/pages/order_success_page.dart';
 import 'package:food_delivery_customer/pages/register_page.dart';
+import 'package:food_delivery_customer/pages/reset_password_page.dart';
 import 'package:food_delivery_customer/pages/settings_page.dart';
 
 class AppRoutes {
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String checkout = '/checkout';
   static const String setting = '/setting';
   static const String orderSuccess = '/payment-success';
+  static const String resetPassword = '/reset-password';
 
 
   static Map<String, WidgetBuilder> get routes => {
@@ -31,5 +33,6 @@ class AppRoutes {
     checkout: (context) => CheckoutPage(),
     setting: (context) => SettingsPage(),
     orderSuccess: (context) => OrderSuccessPage(),
+    resetPassword: (context) => ResetPasswordPage(),
   };
 }

@@ -1,11 +1,17 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../models/food.dart';
+import 'package:path/path.dart' as path;
 
 class FoodService {
 
   final CollectionReference _foodCollection =
   FirebaseFirestore.instance.collection('foods');
+
+  final _storage = FirebaseStorage.instance;
 
   /// Thêm 1 món ăn vào Firestore
   Future<void> addFood(Food food) async {
@@ -36,20 +42,6 @@ class FoodService {
     }
   }
 
-  /// Lấy danh sách tất cả món ăn
-  Future<List<Food>> getFoods() async {
-    try {
-      QuerySnapshot snapshot = await _foodCollection.get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Food.fromJson(data);
-      }).toList();
-    } catch (e) {
-      print('Error fetching foods: $e');
-      return [];
-    }
-  }
 
   /// Nếu muốn theo stream realtime
   Stream<List<Food>> getFoodsStream() {
@@ -60,4 +52,34 @@ class FoodService {
       }).toList();
     });
   }
+
+  // Upload ảnh lên Firebase Storage
+  Future<String> uploadFoodImage(File file) async {
+    try {
+      final fileName =
+          "${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}";
+      final storageRef =
+      FirebaseStorage.instance.ref().child("foods/$fileName");
+      final uploadTask = await storageRef.putFile(file);
+      return await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      throw Exception("Upload failed: $e");
+    }
+  }
+
+  Future<void> deleteFood(Food food) async {
+    try {
+      // Xóa document trong Firestore
+      await _foodCollection.doc(food.id).delete();
+
+      // Nếu có ảnh trong storage thì xóa luôn
+      if (food.imagePath.isNotEmpty) {
+        final ref = _storage.refFromURL(food.imagePath);
+        await ref.delete();
+      }
+    } catch (e) {
+      throw Exception("Failed to delete food: $e");
+    }
+  }
+
 }
