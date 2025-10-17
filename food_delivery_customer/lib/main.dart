@@ -10,7 +10,7 @@ import 'package:food_delivery_customer/services/auth_service.dart';
 import 'package:food_delivery_customer/services/order_service.dart';
 import 'package:food_delivery_customer/themes/theme_provider.dart';
 import 'package:provider/provider.dart';
-
+import 'api/firebase_api.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -24,6 +24,9 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await FirebaseApi.instance.initNotifications();
+
   runApp(
     MultiProvider(
       providers: [

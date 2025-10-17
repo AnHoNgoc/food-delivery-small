@@ -1,66 +1,100 @@
-const functions = require('firebase-functions');
-const express = require('express');
-const cors = require('cors');
-const paypalClient = require('./paypalClient');
-const paypal = require('@paypal/checkout-server-sdk');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const axios = require("axios");
+const cors = require("cors")({ origin: true });
+require("dotenv").config();
 
-const app = express();
-app.use(cors({ origin: true }));
-app.use(express.json());
+admin.initializeApp();
 
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+const PAYPAL_API = process.env.PAYPAL_API;
 
-// POST /create-order
-app.post('/create-order', async (req, res) => {
-    const { totalAmount } = req.body;
-    if (!totalAmount) return res.status(400).json({ message: 'Amount required' });
+/**
+ * Get PayPal access token
+ */
+async function getAccessToken() {
+    const response = await axios({
+        url: `${PAYPAL_API}/v1/oauth2/token`,
+        method: "post",
+        headers: {
+            Accept: "application/json",
+            "Accept-Language": "en_US",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth: {
+            username: PAYPAL_CLIENT_ID,
+            password: PAYPAL_CLIENT_SECRET,
+        },
+        params: {
+            grant_type: "client_credentials",
+        },
+    });
+    return response.data.access_token;
+}
 
-    // Lấy baseUrl động từ request
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+/**
+ * Create order endpoint
+ */
+exports.createOrder = functions.https.onRequest(async (req, res) => {
+    return cors(req, res, async () => {
+        try {
+            const accessToken = await getAccessToken();
+            const { amount, currency } = req.body; // ex: { amount: "10.00", currency: "USD" }
 
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.prefer('return=representation');
-    request.requestBody({
-        intent: 'CAPTURE',
-        purchase_units: [
-            { amount: { currency_code: 'USD', value: totalAmount } }
-        ],
-        application_context: {
-            return_url: `${baseUrl}/capture-order`,
-            cancel_url: `${baseUrl}/cancel`
+            const order = await axios.post(
+                `${PAYPAL_API}/v2/checkout/orders`,
+                {
+                    intent: "CAPTURE",
+                    purchase_units: [
+                        {
+                            amount: {
+                                currency_code: currency || "USD",
+                                value: amount || "10.00",
+                            },
+                        },
+                    ],
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+
+            res.status(200).json(order.data);
+        } catch (err) {
+            console.error("PayPal Create Order Error:", err.message);
+            res.status(500).json({ error: err.message });
         }
     });
-
-    try {
-        const order = await paypalClient.execute(request);
-        const approvalUrl = order.result.links.find(l => l.rel === 'approve').href;
-        res.json({ id: order.result.id, approvalUrl });
-    } catch (err) {
-        console.error('Error creating order:', err);
-        res.status(500).json({ message: 'Error creating PayPal order' });
-    }
 });
 
-// GET /capture-order
-app.get('/capture-order', async (req, res) => {
-    const orderID = req.query.token;
-    if (!orderID) return res.send('Order ID missing');
+/**
+ * Capture order endpoint
+ */
+exports.captureOrder = functions.https.onRequest(async (req, res) => {
+    return cors(req, res, async () => {
+        try {
+            const { orderId } = req.body;
+            const accessToken = await getAccessToken();
 
-    const request = new paypal.orders.OrdersCaptureRequest(orderID);
-    request.requestBody({});
+            const capture = await axios.post(
+                `${PAYPAL_API}/v2/checkout/orders/${orderId}/capture`,
+                {},
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
 
-    try {
-        const capture = await paypalClient.execute(request);
-        res.redirect(`myapp://payment-success?status=${capture.result.status}`);
-    } catch (err) {
-        console.error('Error capturing order:', err);
-        res.redirect('myapp://payment-failed');
-    }
+            res.status(200).json(capture.data);
+        } catch (err) {
+            console.error("PayPal Capture Error:", err.message);
+            res.status(500).json({ error: err.message });
+        }
+    });
 });
-
-// GET /cancel
-app.get('/cancel', (req, res) => {
-    res.redirect('myapp://payment-cancelled');
-});
-
-// Export function cho Firebase
-exports.api = functions.https.onRequest(app);

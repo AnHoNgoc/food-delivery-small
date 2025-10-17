@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_delivery_admin/services/push_notification_service.dart';
 import '../models/customer_order.dart';
 
 class OrderService {
+
+  final pushNotificationService = PushNotificationService();
 
   final CollectionReference _orderCollection =
   FirebaseFirestore.instance.collection('orders');
@@ -16,6 +19,41 @@ class OrderService {
       ...doc.data() as Map<String, dynamic>,
     }))
         .toList());
+  }
+
+
+  Future<bool> updateOrderAndNotify(
+      String orderId,
+      OrderStatus newStatus,
+      String customerId,
+      ) async {
+
+    final success = await updateOrderStatus(orderId, newStatus);
+    if (!success) return false;
+
+    try {
+      // Tuỳ nội dung thông báo theo trạng thái
+      String title = 'Cập nhật đơn hàng 📦';
+      String body = 'Trạng thái đơn hàng #$orderId đã được cập nhật: ${newStatus.name}.';
+
+      // --- Debug: in ra các tham số ---
+      print('🔹 Debug Push Notification Params:');
+      print('customerId = "$customerId"');
+      print('title = "$title"');
+      print('body = "$body"');
+      print('--------------------------------');
+
+      await pushNotificationService.sendPushToCustomer(
+        customerId: customerId,
+        title: title,
+        body: body,
+      );
+      print('✅ Đã gửi thông báo cập nhật đơn hàng.');
+      return true;
+    } catch (e) {
+      print('⚠️ Lỗi khi gửi thông báo: $e');
+      return true;
+    }
   }
 
 

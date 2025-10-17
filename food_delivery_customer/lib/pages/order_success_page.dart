@@ -3,8 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 import '../routes/app_routes.dart';
 
-
-
 class OrderSuccessPage extends StatefulWidget {
   const OrderSuccessPage({Key? key}) : super(key: key);
 

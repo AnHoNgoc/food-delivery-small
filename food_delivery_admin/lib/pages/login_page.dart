@@ -40,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = false);
 
       if (result == null) {
+        print('🔹DANG O TRANG LOGIN');
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.home,
@@ -60,6 +61,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    print('🔹MOI VAO TRANG LOGIN');
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(

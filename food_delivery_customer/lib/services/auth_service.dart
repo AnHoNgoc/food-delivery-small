@@ -1,10 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../api/firebase_api.dart';
+import 'notification_service.dart';
+
 class AuthService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+  final notificationService = NotificationService();
 
   User? getCurrentUser() {
     return _auth.currentUser;
@@ -43,7 +47,7 @@ class AuthService {
     String requiredRole = "customer",
   }) async {
     try {
-      // Đăng nhập
+      print('ℹ️ Đã gọi hàm Login');
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -61,6 +65,14 @@ class AuthService {
       if (role != requiredRole) {
         await _auth.signOut();
         return "Access denied. You must be $requiredRole.";
+      }
+
+      final token = FirebaseApi.instance.fcmToken;
+      if (token != null) {
+        print('💾 Lưu token sau khi login: $token');
+        await NotificationService().saveFcmToken(token);
+      } else {
+        print('⚠️ Chưa có FCM token, sẽ lưu khi FirebaseMessaging.onTokenRefresh chạy');
       }
 
       return null; // Success

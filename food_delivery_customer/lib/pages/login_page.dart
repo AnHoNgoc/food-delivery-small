@@ -34,10 +34,11 @@ class _LoginPageState extends State<LoginPage> {
       String? result = await authService.loginUserWithRoleCheck(
         email: email,
         password: password,
-        requiredRole: "customer", // chỉ admin mới vào được
+        requiredRole: "customer",
       );
 
       setState(() => _isLoading = false);
+      print("Đã gọi hàm login");
 
       if (result == null) {
         Navigator.pushNamedAndRemoveUntil(

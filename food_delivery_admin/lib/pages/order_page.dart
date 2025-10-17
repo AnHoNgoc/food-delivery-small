@@ -137,9 +137,10 @@ class _OrderPageState extends State<OrderPage> {
                                 );
 
                                 if (confirm == true) {
-                                  final success = await orderService.updateOrderStatus(
+                                  final success = await orderService.updateOrderAndNotify(
                                     order.id,
                                     newStatus,
+                                    order.userId
                                   );
                                   if (success) {
                                     showAppSnackBar(
@@ -168,9 +169,10 @@ class _OrderPageState extends State<OrderPage> {
                                       cancelText: 'No',
                                     );
                                     if (confirm == true) {
-                                      final success = await orderService.updateOrderStatus(
+                                      final success = await orderService.updateOrderAndNotify(
                                         order.id,
-                                        OrderStatus.cancelled, // 👈 enum canceled
+                                        OrderStatus.cancelled,
+                                        order.userId// 👈 enum canceled
                                       );
                                       if (success) {
                                         showAppSnackBar(context, 'Order canceled successfully', Colors.green);
