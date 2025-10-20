@@ -13,6 +13,9 @@ import 'package:provider/provider.dart';
 import 'api/firebase_api.dart';
 import 'firebase_options.dart';
 
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -66,6 +69,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          navigatorKey: navigatorKey,
           theme: Provider.of<ThemeProvider>(context).themeData,
           initialRoute: AppRoutes.login,
           routes: AppRoutes.routes,

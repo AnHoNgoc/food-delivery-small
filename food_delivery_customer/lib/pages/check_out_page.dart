@@ -9,6 +9,7 @@ import '../components/my_button.dart';
 import '../components/payment_button.dart';
 import '../provider/order_provider.dart';
 import '../routes/app_routes.dart';
+import '../services/paypal_service.dart';
 
 
 class CheckoutPage extends StatefulWidget {
@@ -19,6 +20,8 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
+
+  final PayPalService _payPalService = PayPalService();
 
   bool isCodLoading = false;
 
@@ -53,6 +56,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final restaurant = Provider.of<CartProvider>(context);
     final location = Provider.of<LocationProvider>(context);
     final cart = restaurant.cart;
+    final totalAmount = restaurant.getTotalPrice();
 
     return Scaffold(
       appBar: AppBar(
@@ -174,8 +178,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               PaymentButton(
                                 assetIconPath: "assets/img/paypal.png",
                                 onPressed: () {
-                                  Navigator.pop(context);
-                                  // TODO: xử lý thanh toán PayPal
+                                  _payPalService.createPayPalOrder(totalAmount, 'USD');
                                 },
                               ),
                             ],

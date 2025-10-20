@@ -2,35 +2,39 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const cors = require("cors")({ origin: true });
-require("dotenv").config();
 
 admin.initializeApp();
 
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
-const PAYPAL_API = process.env.PAYPAL_API;
+const PAYPAL_CLIENT_ID = "AVneN727WSZm3ozKvUIxuri_Sx1reD6UI0qhgt5pwWD8mcOsBfHao-mnZMk1SjEd7fzMGJxTXB8jy73A";
+const PAYPAL_CLIENT_SECRET = "EKcHVh4UxUeEPw6niSKfVo5lSVWbeuxoLG0YGBVQCAYtP7xo7j05sMbMsBjdZ7iFV32CnRv0oJYgaG4T";
+const PAYPAL_API = "https://api-m.sandbox.paypal.com";
 
 /**
  * Get PayPal access token
  */
+
 async function getAccessToken() {
-    const response = await axios({
-        url: `${PAYPAL_API}/v1/oauth2/token`,
-        method: "post",
-        headers: {
-            Accept: "application/json",
-            "Accept-Language": "en_US",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        auth: {
-            username: PAYPAL_CLIENT_ID,
-            password: PAYPAL_CLIENT_SECRET,
-        },
-        params: {
-            grant_type: "client_credentials",
-        },
-    });
-    return response.data.access_token;
+    try {
+        const response = await axios({
+            url: `${PAYPAL_API}/v1/oauth2/token`,
+            method: "post",
+            headers: {
+                Accept: "application/json",
+                "Accept-Language": "en_US",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            auth: {
+                username: PAYPAL_CLIENT_ID,
+                password: PAYPAL_CLIENT_SECRET,
+            },
+            data: "grant_type=client_credentials",
+        });
+
+        return response.data.access_token;
+    } catch (err) {
+        console.error("PayPal Auth Error:", err.response?.data || err.message);
+        throw new Error("Failed to get PayPal access token");
+    }
 }
 
 /**
@@ -38,11 +42,15 @@ async function getAccessToken() {
  */
 exports.createOrder = functions.https.onRequest(async (req, res) => {
     return cors(req, res, async () => {
+        if (req.method !== "POST") {
+            return res.status(405).send("Method Not Allowed");
+        }
+
         try {
             const accessToken = await getAccessToken();
-            const { amount, currency } = req.body; // ex: { amount: "10.00", currency: "USD" }
+            const { amount, currency } = req.body;
 
-            const order = await axios.post(
+            const orderResponse = await axios.post(
                 `${PAYPAL_API}/v2/checkout/orders`,
                 {
                     intent: "CAPTURE",
@@ -50,10 +58,17 @@ exports.createOrder = functions.https.onRequest(async (req, res) => {
                         {
                             amount: {
                                 currency_code: currency || "USD",
-                                value: amount || "10.00",
+                                value: amount || "0.00",
                             },
                         },
                     ],
+                    application_context: {
+                        brand_name: "MyApp",
+                        landing_page: "LOGIN",
+                        user_action: "PAY_NOW",
+                        return_url: "myapp://checkout-success",
+                        cancel_url: "myapp://checkout-cancel",
+                    },
                 },
                 {
                     headers: {
@@ -63,7 +78,15 @@ exports.createOrder = functions.https.onRequest(async (req, res) => {
                 }
             );
 
-            res.status(200).json(order.data);
+            // 🔹 Lấy link "approve" để người dùng mở PayPal
+            const approvalUrl = orderResponse.data.links.find(
+                (link) => link.rel === "approve"
+            )?.href;
+
+            res.status(200).json({
+                orderId: orderResponse.data.id,
+                approvalUrl, // 👈 cái này mới là link bạn cần
+            });
         } catch (err) {
             console.error("PayPal Create Order Error:", err.message);
             res.status(500).json({ error: err.message });
@@ -76,8 +99,19 @@ exports.createOrder = functions.https.onRequest(async (req, res) => {
  */
 exports.captureOrder = functions.https.onRequest(async (req, res) => {
     return cors(req, res, async () => {
+
+        if (req.method !== "POST") {
+            return res.status(405).send("Method Not Allowed");
+        }
+
+
         try {
             const { orderId } = req.body;
+
+            if (!orderId) {
+                return res.status(400).json({ error: "Missing orderId" });
+            }
+
             const accessToken = await getAccessToken();
 
             const capture = await axios.post(
