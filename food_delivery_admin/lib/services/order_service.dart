@@ -33,15 +33,8 @@ class OrderService {
 
     try {
       // Tuỳ nội dung thông báo theo trạng thái
-      String title = 'Cập nhật đơn hàng 📦';
-      String body = 'Trạng thái đơn hàng #$orderId đã được cập nhật: ${newStatus.name}.';
-
-      // --- Debug: in ra các tham số ---
-      print('🔹 Debug Push Notification Params:');
-      print('customerId = "$customerId"');
-      print('title = "$title"');
-      print('body = "$body"');
-      print('--------------------------------');
+      String title = 'Order Update 📦';
+      String body = 'Your order #$orderId status has been updated to: ${newStatus.name}.';
 
       await pushNotificationService.sendPushToCustomer(
         customerId: customerId,

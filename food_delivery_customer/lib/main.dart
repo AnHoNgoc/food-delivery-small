@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,8 +8,10 @@ import 'package:food_delivery_customer/provider/location_provider.dart';
 import 'package:food_delivery_customer/provider/order_provider.dart';
 import 'package:food_delivery_customer/routes/app_routes.dart';
 import 'package:food_delivery_customer/services/auth_service.dart';
+import 'package:food_delivery_customer/services/notification_service.dart';
 import 'package:food_delivery_customer/services/order_service.dart';
 import 'package:food_delivery_customer/themes/theme_provider.dart';
+import 'package:food_delivery_customer/utils/deeplink_handle.dart';
 import 'package:provider/provider.dart';
 import 'api/firebase_api.dart';
 import 'firebase_options.dart';
@@ -28,7 +31,14 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+
+  await NotificationService.initialize();
+
   await FirebaseApi.instance.initNotifications();
+
+
+  final deepLinkHandler = DeepLinkHandler();
+  await deepLinkHandler.init();
 
   runApp(
     MultiProvider(
