@@ -5,8 +5,8 @@ const cors = require("cors")({ origin: true });
 
 admin.initializeApp();
 
-const PAYPAL_CLIENT_ID = "AVneN727WSZm3ozKvUIxuri_Sx1reD6UI0qhgt5pwWD8mcOsBfHao-mnZMk1SjEd7fzMGJxTXB8jy73A";
-const PAYPAL_CLIENT_SECRET = "EKcHVh4UxUeEPw6niSKfVo5lSVWbeuxoLG0YGBVQCAYtP7xo7j05sMbMsBjdZ7iFV32CnRv0oJYgaG4T";
+const PAYPAL_CLIENT_ID = functions.config().paypal.client_id;
+const PAYPAL_CLIENT_SECRET = functions.config().paypal.client_secret;
 const PAYPAL_API = "https://api-m.sandbox.paypal.com";
 
 /**
