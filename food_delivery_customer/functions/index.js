@@ -10,6 +10,7 @@ const PAYPAL_CLIENT_SECRET = functions.config().paypal.client_secret;
 const PAYPAL_API = "https://api-m.sandbox.paypal.com";
 
 /**
+ * 
  * Get PayPal access token
  */
 

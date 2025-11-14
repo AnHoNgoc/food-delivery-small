@@ -25,8 +25,21 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
     const message = {
         token: fcmToken,
         notification: { title, body },
-        android: { priority: "high", notification: { channelId: "high_importance_channel", sound: "default" } },
-        apns: { payload: { aps: { sound: "default" } } },
+        android: {
+            priority: "high",
+            notification: {
+                channelId: "high_importance_channel",
+                sound: "default",
+            },
+        },
+        apns: {
+            payload: {
+                aps: {
+                    sound: "default",
+                    contentAvailable: true,
+                },
+            },
+        },
         data: Object.fromEntries(
             Object.entries(dataPayload || {}).map(([k, v]) => [k, String(v)])
         ),
@@ -35,3 +48,5 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
     await admin.messaging().send(message);
     return { success: true };
 });
+
+
