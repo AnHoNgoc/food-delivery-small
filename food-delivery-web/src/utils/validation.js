@@ -46,10 +46,9 @@ export const validateNewPassword = (oldPassword, newPassword) => {
     }
 
 
-    // ✅ Không được trùng với mật khẩu cũ
     if (oldPassword && oldPassword === newPassword) {
         return "New password must be different from the current password.";
     }
 
-    return ""; // Hợp lệ
+    return ""; 
 };

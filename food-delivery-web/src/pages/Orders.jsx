@@ -87,6 +87,9 @@ export default function Orders() {
             // 4️⃣ Gửi push notification, nhưng nếu fail thì chỉ log, không throw
             try {
                 const sendPushNotification = httpsCallable(functions, "sendPushNotification");
+
+                console.log("Id of user", selectedOrder.userId);
+
                 await sendPushNotification({
                     customerId: selectedOrder.userId,
                     title: `Order ${selectedStatus}`,

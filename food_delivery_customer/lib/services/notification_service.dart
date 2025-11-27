@@ -19,7 +19,12 @@ class NotificationService {
   /// 🚀 Khởi tạo local notification + tạo channel (Android)
   static Future<void> initialize() async {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings();
+
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
 
@@ -47,6 +52,22 @@ class NotificationService {
       description: _channelDescription,
       importance: Importance.high,
     ));
+
+    final fcm = FirebaseMessaging.instance;
+    NotificationSettings settings = await fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // ✅ iOS FOREGROUND NOTIFICATION ENABLE
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
   }
 
   /// 🧭 Xử lý khi người dùng bấm vào thông báo
@@ -56,6 +77,7 @@ class NotificationService {
 
   /// 🔔 Hiển thị local notification khi app đang foreground
   static Future<void> showNotification(RemoteMessage message) async {
+    // Android settings
     const androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
@@ -65,8 +87,20 @@ class NotificationService {
       playSound: true,
     );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    // iOS settings
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true, // hiển thị alert
+      presentBadge: true, // update badge
+      presentSound: true, // play sound
+    );
 
+    // NotificationDetails hỗ trợ cả Android & iOS
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Hiển thị notification
     await _localNotifications.show(
       message.hashCode,
       message.notification?.title ?? 'Notification',
@@ -78,41 +112,18 @@ class NotificationService {
 
 
   Future<void> saveFcmToken(String token) async {
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final docRef = _fireStore.collection('users').doc(user.uid);
-
     try {
-      // 🔍 Tìm tất cả user đang giữ token này
-      final query = await _fireStore
-          .collection('users')
-          .where('fcmToken', isEqualTo: token)
-          .get();
+      await _fireStore.collection('tokens').doc(token).set({
+        'userId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
-      // ❌ Xóa token ở user cũ (nếu không phải user hiện tại)
-      for (var doc in query.docs) {
-        if (doc.id != user.uid) {
-          await doc.reference.update({'fcmToken': FieldValue.delete()});
-          print('🧹 Removed FCM token from old user: ${doc.id}');
-        }
-      }
-
-      // 📋 Kiểm tra token hiện tại trong doc
-      final snapshot = await docRef.get();
-      final existingToken = snapshot.data()?['fcmToken'];
-
-      if (existingToken == token) {
-        print('ℹ️ FCM token unchanged — skip update.');
-        return;
-      }
-
-      // ✅ Gán token mới cho user
-      await docRef.set({'fcmToken': token}, SetOptions(merge: true));
-      print('✅ FCM token assigned to user ${user.uid}');
+      print("✅ Saved FCM token for user ${user.uid}");
     } catch (e) {
-      print('❗ Failed to save/reassign FCM token: $e');
+      print('❗ Failed to save FCM token: $e');
     }
   }
 }

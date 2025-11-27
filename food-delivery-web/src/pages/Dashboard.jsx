@@ -5,6 +5,7 @@ import { countUsers } from "../services/userService";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
+    
     const [totalProducts, setTotalProducts] = useState(0);
     const [totalUsers, setTotalUsers] = useState(0);
     const [totalOrders, setTotalOrders] = useState(0);

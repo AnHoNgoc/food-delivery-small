@@ -59,10 +59,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCG1hnrGdbjLUKcSJGq9TTrOjbWtLKIUDk',
-    appId: '1:807300063976:ios:4488e78f28490e018a1f5d',
+    appId: '1:807300063976:ios:c4acc48c2b63a3f08a1f5d',
     messagingSenderId: '807300063976',
     projectId: 'food-delivery-small',
     storageBucket: 'food-delivery-small.firebasestorage.app',
-    iosBundleId: 'com.example.foodDeliveryCustomer',
+    iosBundleId: 'com.ngocanho.fooddeliverycustomer',
   );
 }

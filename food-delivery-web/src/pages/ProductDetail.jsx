@@ -4,12 +4,13 @@ import { getProductDetail, updateProduct, deleteProduct } from "../services/prod
 import toast from "react-hot-toast";
 import { FaTrashAlt, FaPen } from "react-icons/fa";
 import CustomModal from "../components/CustomModal";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { app } from "../firebase";
 
 const categories = ["desserts", "drinks", "sides", "burgers", "salads"];
 
 export default function ProductDetail() {
+
     const { id } = useParams();
     const navigate = useNavigate();
 

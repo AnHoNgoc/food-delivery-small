@@ -10,17 +10,26 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
         throw new HttpsError("invalid-argument", "Missing parameters");
     }
 
-    const customerDoc = await admin.firestore().collection("users").doc(customerId).get();
+    console.log("======== SEND PUSH =========");
+    console.log("customerId:", customerId);
 
-    if (!customerDoc.exists) {
-        throw new HttpsError("not-found", "Customer not found");
+    const tokenQuery = await admin.firestore()
+        .collection("tokens")
+        .where("userId", "==", customerId)
+        .get();
+
+    console.log("matched tokens:", tokenQuery.size);
+
+    if (tokenQuery.empty) {
+        throw new HttpsError("not-found", "Receiver FCM token not found");
     }
 
-    const fcmToken = customerDoc.data()?.fcmToken;
+    const fcmToken = tokenQuery.docs[0].id;
 
     if (!fcmToken) {
-        throw new HttpsError("not-found", "Customer FCM token not found");
+        throw new HttpsError("not-found", "FCM token is empty");
     }
+
 
     const message = {
         token: fcmToken,
@@ -35,6 +44,7 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
         apns: {
             payload: {
                 aps: {
+                    alert: { title, body }, // hiển thị alert
                     sound: "default",
                     contentAvailable: true,
                 },
