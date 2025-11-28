@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: 20.h),
                 Text(
-                  "Welcome Back, you've been missed!",
+                  "Welcome back! Let's get started.",
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontSize: 16.sp, // responsive font size
@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Not a member?",
+                      "Don't have an account?",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 14.sp,
