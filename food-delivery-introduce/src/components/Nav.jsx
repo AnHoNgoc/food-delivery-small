@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-const Navbar = () => {
+const Nav = () => {
 
     const navItems = [
         { name: "Home", path: "/" },
@@ -33,4 +33,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+export default Nav;
