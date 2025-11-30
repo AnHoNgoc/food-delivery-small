@@ -1,7 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:food_delivery_customer/pages/check_out_page.dart';
 import 'package:food_delivery_customer/provider/cart_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:food_delivery_customer/components/my_cart_tile.dart';

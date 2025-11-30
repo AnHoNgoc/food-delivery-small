@@ -33,7 +33,7 @@ class NotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (response.payload != null) {
           try {
-            final data = jsonDecode(response.payload!);
+            // final data = jsonDecode(response.payload!);
             handleNotificationClick();
           } catch (e) {
             print('❌ Parse payload error: $e');
