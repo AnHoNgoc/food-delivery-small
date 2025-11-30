@@ -16,6 +16,8 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
     const tokenQuery = await admin.firestore()
         .collection("tokens")
         .where("userId", "==", customerId)
+        .orderBy("updatedAt", "desc")
+        .limit(1)
         .get();
 
     console.log("matched tokens:", tokenQuery.size);
@@ -30,10 +32,8 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
         throw new HttpsError("not-found", "FCM token is empty");
     }
 
-
     const message = {
         token: fcmToken,
-        notification: { title, body },
         android: {
             priority: "high",
             notification: {
@@ -42,13 +42,19 @@ exports.sendPushNotification = onCall({ region: "us-central1" }, async (req) => 
             },
         },
         apns: {
+            headers: {
+                "apns-priority": "10",
+                "apns-push-type": "alert"
+            },
             payload: {
                 aps: {
-                    alert: { title, body }, // hiển thị alert
+                    alert: {
+                        title,
+                        body
+                    },
                     sound: "default",
-                    contentAvailable: true,
-                },
-            },
+                }
+            }
         },
         data: Object.fromEntries(
             Object.entries(dataPayload || {}).map(([k, v]) => [k, String(v)])
