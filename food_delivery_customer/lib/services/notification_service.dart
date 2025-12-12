@@ -56,14 +56,14 @@ class NotificationService {
     final fcm = FirebaseMessaging.instance;
     NotificationSettings settings = await fcm.requestPermission(
       alert: true,
-      badge: true,
+      badge: false,
       sound: true,
     );
 
     // ✅ iOS FOREGROUND NOTIFICATION ENABLE
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
       alert: true,
-      badge: true,
+      badge: false,
       sound: true,
     );
 
@@ -90,7 +90,7 @@ class NotificationService {
     // iOS settings
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true, // hiển thị alert
-      presentBadge: true, // update badge
+      presentBadge: false,
       presentSound: true, // play sound
     );
 

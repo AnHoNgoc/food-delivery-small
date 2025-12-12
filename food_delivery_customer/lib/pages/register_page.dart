@@ -108,7 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: 25.h),
                 MyButton(
-                  text: "Login",
+                  text: "Register",
                   onTap: auth.isLoading ? null : _register, // disable khi loading
                   isLoading: auth.isLoading, // show spinner khi loading
                 ),
